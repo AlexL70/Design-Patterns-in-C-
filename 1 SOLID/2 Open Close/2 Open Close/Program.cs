@@ -35,26 +35,72 @@ namespace _2_Open_Close
             }
         }
 
-        public class ProductFilter
+        public interface ISpecification<T>
         {
-            public static IEnumerable<Product> FilterBySize(IEnumerable<Product> products, Size size)
+            bool IsSatisfied(T t);
+        }
+
+        public interface IFilter<T>
+        {
+            IEnumerable<T> Filter(IEnumerable<T> items, ISpecification<T> spec);
+        }
+
+        public class ColorSpecification : ISpecification<Product>
+        {
+            private Color _color;
+
+            public ColorSpecification(Color color)
             {
-                foreach (Product product in products)
-                {
-                    if (product.Size == size)
-                    {
-                        yield return product;
-                    }
-                }
+                _color = color;
             }
 
-            public static IEnumerable<Product> FilterByColor(IEnumerable<Product> products, Color color)
+            public bool IsSatisfied(Product t)
             {
-                foreach (Product product in products)
+                return t.Color == _color;
+            }
+        }
+
+        public class SizeSpecification : ISpecification<Product>
+        {
+            private Size _size;
+
+            public SizeSpecification(Size size)
+            {
+                _size = size;
+            }
+
+            public bool IsSatisfied(Product t)
+            {
+                return t.Size == _size;
+            }
+        }
+
+        public class AndSpecification<T> : ISpecification<T>
+        {
+            private ISpecification<T> _first;
+            private ISpecification<T> _second;
+
+            public AndSpecification(ISpecification<T> first, ISpecification<T> second)
+            {
+                _first = first;
+                _second = second;
+            }
+
+            public bool IsSatisfied(T t)
+            {
+                return _first.IsSatisfied(t) && _second.IsSatisfied(t);
+            }
+        }
+
+        public class ProductFilter : IFilter<Product>
+        {
+            public IEnumerable<Product> Filter(IEnumerable<Product> items, ISpecification<Product> spec)
+            {
+                foreach (Product item in items)
                 {
-                    if (product.Color == color)
+                    if (spec.IsSatisfied(item))
                     {
-                        yield return product;
+                        yield return item;
                     }
                 }
             }
@@ -69,8 +115,24 @@ namespace _2_Open_Close
                 new Product("House", Color.Blue, Size.Large)
             }.ToArray();
 
-            var greenProducts = ProductFilter.FilterByColor(products, Color.Green).ToArray();
-            foreach (Product product in greenProducts)
+            var filter = new ProductFilter();
+            Console.WriteLine("Green products:");
+            foreach (Product product in filter.Filter(products, new ColorSpecification(Color.Green)))
+            {
+                Console.WriteLine(product);
+            }
+            Console.WriteLine();
+            Console.WriteLine("Large products:");
+            foreach (Product product in filter.Filter(products, new SizeSpecification(Size.Large)))
+            {
+                Console.WriteLine(product);
+            }
+            Console.WriteLine();
+            Console.WriteLine("Large green products:");
+            foreach (Product product in filter.Filter(products, 
+                new AndSpecification<Product>(
+                    new ColorSpecification(Color.Green), 
+                    new SizeSpecification(Size.Large))))
             {
                 Console.WriteLine(product);
             }
