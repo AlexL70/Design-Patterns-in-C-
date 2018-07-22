@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks.Dataflow;
 
 namespace _1_Single_Responsibility
 {
@@ -9,6 +11,13 @@ namespace _1_Single_Responsibility
     {
         public class Journal
         {
+            public Journal() {}
+
+            public Journal(IEnumerable<string> entries)
+            {
+                _entries = entries.ToList();
+            }
+
             private List<string> _entries = new List<string>();
 
             private static int _count = 0;
@@ -28,20 +37,24 @@ namespace _1_Single_Responsibility
             {
                 return string.Join(Environment.NewLine, _entries);
             }
+         }
 
-            public void Save(string fileName)
+        public class JournalPersistence
+        {
+            public void Save(Journal j, string fileName, bool overwrite = false)
             {
-                File.WriteAllText(fileName, ToString());
+                if ( overwrite || !File.Exists(fileName))
+                {
+                    File.WriteAllText(fileName, j.ToString());
+                }
             }
 
             public static Journal Load(string fileName)
             {
-                var j = new Journal();
                 var lines = File.ReadAllLines(fileName);
-                j._entries = lines.ToList();
-                return j;
+                return new Journal(lines);
             }
-         }
+        }
 
         static void Main(string[] args)
         {
@@ -51,6 +64,11 @@ namespace _1_Single_Responsibility
             j.AddEntry("I ate a bug");
             j.RemoveEntry(1);
             Console.WriteLine(j);
+
+            var p = new JournalPersistence();
+            var fileName = @"c:\Temp\Journal.txt";
+            p.Save(j, fileName, true);
+            Process.Start("notepad.exe", fileName);
         }
     }
 }
