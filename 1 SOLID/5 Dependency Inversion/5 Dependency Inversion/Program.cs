@@ -19,7 +19,7 @@ namespace _5_Dependency_Inversion
         }
 
         //  Low-level part
-        public class Relationships
+        public class Relationships : IRelationshipBrowser
         {
             private List<(Person,Relationship,Person)> relations = new List<(Person, Relationship, Person)>();
 
@@ -29,18 +29,26 @@ namespace _5_Dependency_Inversion
                 relations.Add((child, Relationship.Child, parent));
             }
 
-            public List<(Person, Relationship, Person)> Relations => relations;
+            public IEnumerable<Person> FindAllChildrenOf(string name)
+            {
+                return relations.Where(r => r.Item1.Name == name && r.Item2 == Relationship.Parent)
+                    .Select(r => r.Item3);
+            }
+        }
+
+        public interface IRelationshipBrowser
+        {
+            IEnumerable<Person> FindAllChildrenOf(string name);
         }
 
         //  High-level part
         public class Research
         {
-            public Research(Relationships relationships)
+            public Research(IRelationshipBrowser relBrowser)
             {
-                foreach ((Person, Relationship, Person) relation in relationships.Relations
-                    .Where(r => r.Item1.Name == "John" && r.Item2 == Relationship.Parent))
+                foreach (var child in relBrowser.FindAllChildrenOf("John"))
                 {
-                    Console.WriteLine($"John has child called {relation.Item3.Name}");   
+                    Console.WriteLine($"John has child called {child.Name}");   
                 }
             }
         }
