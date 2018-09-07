@@ -56,10 +56,11 @@ namespace Builder
             root.Name = rootName ?? throw new ArgumentNullException();
         }
 
-        public void AddChild(string childName, string childText)
+        public HtmlBuilder AddChild(string childName, string childText)
         {
             var e = new HtmlElement(childName, childText);
             root.Children.Add(e);
+            return this;
         }
 
         public override string ToString()
@@ -79,9 +80,8 @@ namespace Builder
         static void Main(string[] args)
         {
             var builder = new HtmlBuilder("ul");
-            builder.AddChild("li", "hello");
-            builder.AddChild("li", "world");
-            builder.AddChild("li", @"This world
+            builder.AddChild("li", "hello").AddChild("li", "world")
+            .AddChild("li", @"This world
 is full of shit.
 Though, we have what
 we have.");
