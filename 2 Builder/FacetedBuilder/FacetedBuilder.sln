@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2019
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FacetedBuilder", "FacetedBuilder\FacetedBuilder.csproj", "{E1FB15FA-63FA-41D9-AD42-DD2DEEEC6CFC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E1FB15FA-63FA-41D9-AD42-DD2DEEEC6CFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1FB15FA-63FA-41D9-AD42-DD2DEEEC6CFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1FB15FA-63FA-41D9-AD42-DD2DEEEC6CFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1FB15FA-63FA-41D9-AD42-DD2DEEEC6CFC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FF9FFA21-6F1E-427D-AD5A-C4A4EFE84FF8}
+	EndGlobalSection
+EndGlobal
