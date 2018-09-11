@@ -7,28 +7,25 @@ namespace PointExample
         Cartesian, Polar
     }
 
-    public class Point
+    public static class PointFactory
     {
-        //  factory method
         public static Point NewCartesianPoint(double x, double y)
         {
-            return new Point(x, y);
+            return new Point() { x = x, y = y};
         }
 
-        //  another factory method
         public static Point NewPolarPoint(double rho, double theta)
         {
-            return new Point(rho * Math.Cos(theta), rho * Math.Sin(theta));
+            return new Point() { x = rho * Math.Cos(theta), y = rho * Math.Sin(theta)};
         }
+    }
 
+    public class Point
+    {
         public double x { get; set; }
         public double y { get; set; }
 
-        private Point(double x, double y)
-        {
-            this.x = x;
-            this.y = y;
-        }
+        public Point() {}
 
         public override string ToString()
         {
@@ -40,7 +37,7 @@ namespace PointExample
     {
         static void Main(string[] args)
         {
-            var point = Point.NewPolarPoint(1.0, Math.PI / 2);
+            var point = PointFactory.NewPolarPoint(1.0, Math.PI / 2);
             Console.WriteLine(point);
         }
     }
