@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AbstractFactory
 {
@@ -49,26 +50,18 @@ namespace AbstractFactory
 
     public class HotDrinkMachine
     {
-        public enum AvailableDrink
-        {
-            Coffee, Tea
-        }
-
-        private Dictionary<AvailableDrink, IHotDrinkFactory> factories =
-            new Dictionary<AvailableDrink, IHotDrinkFactory>();
+        private readonly Dictionary<string, IHotDrinkFactory> factories = new Dictionary<string, IHotDrinkFactory>();
 
         public HotDrinkMachine()
         {
-            foreach (AvailableDrink drink in Enum.GetValues(typeof(AvailableDrink)))
+            foreach (var t in typeof(HotDrinkMachine).Assembly.GetTypes()
+                .Where(t => typeof(IHotDrinkFactory).IsAssignableFrom(t) && t.IsClass))
             {
-                IHotDrinkFactory factory = (IHotDrinkFactory) Activator.CreateInstance(
-                    Type.GetType($"{nameof(AbstractFactory)}.{Enum.GetName(typeof(AvailableDrink), drink)}Factory")
-                );
-                factories.Add(drink, factory);
+                factories.Add(t.Name.Replace("Factory", string.Empty), (IHotDrinkFactory)Activator.CreateInstance(t));   
             }
         }
 
-        public IHotDrink MakeDrink(AvailableDrink drink, int amount)
+        public IHotDrink MakeDrink(string drink, int amount)
         {
             return factories[drink].Prepare(amount);
         }
@@ -79,9 +72,9 @@ namespace AbstractFactory
         static void Main(string[] args)
         {
             var machine = new HotDrinkMachine();
-            var tea = machine.MakeDrink(HotDrinkMachine.AvailableDrink.Tea, 150);
+            var tea = machine.MakeDrink(nameof(Tea), 150);
             tea.Consume();
-            var coffee = machine.MakeDrink(HotDrinkMachine.AvailableDrink.Coffee, 70);
+            var coffee = machine.MakeDrink(nameof(Coffee), 70);
             coffee.Consume();
         }
     }
