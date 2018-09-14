@@ -2,7 +2,7 @@
 
 namespace ICloneableIsBad
 {
-    public class Person : ICloneable
+    public class Person
     {
         public string[] Names { get; set; }
         public Address Address { get; set; }
@@ -18,13 +18,14 @@ namespace ICloneableIsBad
             return $"{nameof(Names)}: {string.Join(" ", Names)}, {nameof(Address)}: {Address}";
         }
 
-        public object Clone()
+        public Person(Person other)
         {
-            return new Person( (string[]) Names.Clone(), (Address) Address.Clone());
+            Names = (string[]) other.Names.Clone();
+            Address = new Address(other.Address);
         }
     }
 
-    public class Address : ICloneable
+    public class Address
     {
         public string StreetName { get; set; }
         public int HouseNumber { get; set; }
@@ -35,14 +36,15 @@ namespace ICloneableIsBad
             HouseNumber = houseNumber;
         }
 
+        public Address(Address address)
+        {
+            StreetName = address.StreetName;
+            HouseNumber = address.HouseNumber;
+        }
+
         public override string ToString()
         {
             return $"{nameof(StreetName)}: {StreetName}, {nameof(HouseNumber)}: {HouseNumber}";
-        }
-
-        public object Clone()
-        {
-            return new Address(StreetName, HouseNumber);
         }
     }
 
@@ -51,9 +53,7 @@ namespace ICloneableIsBad
         static void Main(string[] args)
         {
             var john = new Person( new []{ "John", "Smith"}, new Address("London Road", 123));
-            Person jane = (Person)john.Clone();
-            jane.Names[0] = "Jane";
-            jane.Address.HouseNumber = 321;
+            Person jane = new Person(john) {Names = {[0] = "Jane"}, Address = {HouseNumber = 321}};
             Console.WriteLine(john);
             Console.WriteLine(jane);
         }
