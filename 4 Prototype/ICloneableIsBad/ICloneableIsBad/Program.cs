@@ -1,13 +1,37 @@
 ﻿using System;
+using System.IO;
+//using System.Runtime.Serialization.Formatters.Binary;
+using System.Xml.Serialization;
 
 namespace ICloneableIsBad
 {
-    public interface IPrototype<T>
+    static class SerializationExtension
     {
-        T DeepCopy();
+        //public static T DeepCopy<T>(this T self)
+        //{
+        //    var stream = new MemoryStream();
+        //    var formatter = new BinaryFormatter();
+        //    formatter.Serialize(stream, self);
+        //    stream.Seek(0, SeekOrigin.Begin);
+        //    var copy = formatter.Deserialize(stream);
+        //    stream.Close();
+        //    return (T) copy;
+        //}
+
+        public static T DeepCopyXml<T>(this T self)
+        {
+            using (var stream = new MemoryStream())
+            {
+                var s = new XmlSerializer(typeof(T));
+                s.Serialize(stream, self);
+                stream.Seek(0, SeekOrigin.Begin);
+                return (T)s.Deserialize(stream);
+            }
+        }
     }
 
-    public class Person : IPrototype<Person>
+    //[Serializable]
+    public class Person
     {
         public string[] Names { get; set; }
         public Address Address { get; set; }
@@ -18,10 +42,7 @@ namespace ICloneableIsBad
             Address = address ?? throw new ArgumentNullException(nameof(address));
         }
 
-        public Person DeepCopy()
-        {
-            return new Person((string[]) Names.Clone(), Address.DeepCopy());
-        }
+        protected Person() {}
 
         public override string ToString()
         {
@@ -29,7 +50,8 @@ namespace ICloneableIsBad
         }
     }
 
-    public class Address : IPrototype<Address>
+    //[Serializable]
+    public class Address
     {
         public string StreetName { get; set; }
         public int HouseNumber { get; set; }
@@ -40,10 +62,7 @@ namespace ICloneableIsBad
             HouseNumber = houseNumber;
         }
 
-        public Address DeepCopy()
-        {
-            return new Address(StreetName, HouseNumber);
-        }
+        protected Address() {}
 
         public override string ToString()
         {
@@ -56,7 +75,7 @@ namespace ICloneableIsBad
         static void Main(string[] args)
         {
             var john = new Person( new []{ "John", "Smith"}, new Address("London Road", 123));
-            var jane = john.DeepCopy();
+            var jane = john.DeepCopyXml();
             jane.Names[0] = "Jane";
             jane.Address.HouseNumber = 321;
             Console.WriteLine(john);
