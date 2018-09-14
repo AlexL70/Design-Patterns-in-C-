@@ -2,7 +2,12 @@
 
 namespace ICloneableIsBad
 {
-    public class Person
+    public interface IPrototype<T>
+    {
+        T DeepCopy();
+    }
+
+    public class Person : IPrototype<Person>
     {
         public string[] Names { get; set; }
         public Address Address { get; set; }
@@ -13,19 +18,18 @@ namespace ICloneableIsBad
             Address = address ?? throw new ArgumentNullException(nameof(address));
         }
 
+        public Person DeepCopy()
+        {
+            return new Person((string[]) Names.Clone(), Address.DeepCopy());
+        }
+
         public override string ToString()
         {
             return $"{nameof(Names)}: {string.Join(" ", Names)}, {nameof(Address)}: {Address}";
         }
-
-        public Person(Person other)
-        {
-            Names = (string[]) other.Names.Clone();
-            Address = new Address(other.Address);
-        }
     }
 
-    public class Address
+    public class Address : IPrototype<Address>
     {
         public string StreetName { get; set; }
         public int HouseNumber { get; set; }
@@ -36,10 +40,9 @@ namespace ICloneableIsBad
             HouseNumber = houseNumber;
         }
 
-        public Address(Address address)
+        public Address DeepCopy()
         {
-            StreetName = address.StreetName;
-            HouseNumber = address.HouseNumber;
+            return new Address(StreetName, HouseNumber);
         }
 
         public override string ToString()
@@ -53,7 +56,9 @@ namespace ICloneableIsBad
         static void Main(string[] args)
         {
             var john = new Person( new []{ "John", "Smith"}, new Address("London Road", 123));
-            Person jane = new Person(john) {Names = {[0] = "Jane"}, Address = {HouseNumber = 321}};
+            var jane = john.DeepCopy();
+            jane.Names[0] = "Jane";
+            jane.Address.HouseNumber = 321;
             Console.WriteLine(john);
             Console.WriteLine(jane);
         }
