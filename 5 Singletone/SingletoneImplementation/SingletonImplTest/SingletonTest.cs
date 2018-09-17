@@ -1,3 +1,4 @@
+using Autofac;
 using NUnit.Framework;
 using SingletoneImplementation;
 
@@ -22,6 +23,30 @@ namespace SingletonImplTest
             var names = new string[] {"Seoul", "Mexico City"};
             int total = rf.GetTotalPopulation(names);
             Assert.That(total, Is.EqualTo(34900000));
+        }
+
+        [Test]
+        public void SingletonConfigurablePopulationTest()
+        {
+            var crf = new ConfigurableRecordFinder(new DummyDatabase());
+            var names = new string[] {"alpha", "beta", "gamma"};
+            int total = crf.GetTotalPopulation(names);
+            Assert.That(total, Is.EqualTo(6));
+        }
+
+        [Test]
+        public void DIPopulationTest()
+        {
+            var cb = new ContainerBuilder();
+            cb.RegisterType<DummyDatabase>().As<IDatabase>().SingleInstance();
+            cb.RegisterType<ConfigurableRecordFinder>();
+            using (var c = cb.Build())
+            {
+                var rf = c.Resolve<ConfigurableRecordFinder>();
+                var names = new string[] { "alpha", "gamma" };
+                int total = rf.GetTotalPopulation(names);
+                Assert.That(total, Is.EqualTo(4));
+            }
         }
     }
 

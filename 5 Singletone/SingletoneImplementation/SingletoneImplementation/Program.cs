@@ -41,6 +41,28 @@ namespace SingletoneImplementation
         public static SingletonDatabase Instance => instance.Value;
     }
 
+    public class OrdinaryDatabase : IDatabase
+    {
+        private readonly Dictionary<string, int> _capitals;
+
+        public OrdinaryDatabase()
+        {
+            WriteLine("Initializing Database");
+            _capitals = File.ReadAllLines(
+                    Path.Combine(new FileInfo(typeof(IDatabase).Assembly.Location).DirectoryName,
+                        "Capitals.txt"))
+                .Batch(2).ToDictionary(
+                    list => list.ElementAt(0).Trim(),
+                    list => int.Parse(list.ElementAt(1))
+                );
+        }
+
+        public int GetPopulation(string name)
+        {
+            return _capitals[name];
+        }
+    }
+
     public class SingletonRecordFinder
     {
         public int GetTotalPopulation(IEnumerable<string> names)
@@ -51,6 +73,41 @@ namespace SingletoneImplementation
                 result += SingletonDatabase.Instance.GetPopulation(name);
             }
             return result;
+        }
+    }
+
+    public class ConfigurableRecordFinder
+    {
+        private readonly IDatabase _database;
+
+        public ConfigurableRecordFinder(IDatabase database)
+        {
+            this._database = database ?? throw new ArgumentNullException(nameof(database));
+        }
+
+        public int GetTotalPopulation(IEnumerable<string> names)
+        {
+            int result = 0;
+            foreach (var name in names)
+            {
+                result += _database.GetPopulation(name);
+            }
+            return result;
+        }
+    }
+
+    public class DummyDatabase : IDatabase
+    {
+        private Dictionary<string, int> _capitals = new Dictionary<string, int>()
+        {
+            ["alpha"] = 1,
+            ["beta"] = 2,
+            ["gamma"] = 3
+        };
+
+        public int GetPopulation(string name)
+        {
+            return _capitals[name];
         }
     }
 
