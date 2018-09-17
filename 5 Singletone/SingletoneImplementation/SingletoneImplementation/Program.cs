@@ -12,14 +12,19 @@ namespace SingletoneImplementation
         int GetPopulation(string name);
     }
 
-    public class SingletoneDatabase : IDatabase
+    public class SingletonDatabase : IDatabase
     {
-        private Dictionary<string, int> _capitals;
+        private readonly Dictionary<string, int> _capitals;
+        private static int _instanceCount = 0;
+        public static int Count => _instanceCount;
 
-        private SingletoneDatabase()
+        private SingletonDatabase()
         {
+            _instanceCount++;
             WriteLine("Initializing Database");
-            _capitals = File.ReadAllLines("Capitals.txt")
+            _capitals = File.ReadAllLines(
+                    Path.Combine(new FileInfo(typeof(IDatabase).Assembly.Location).DirectoryName,
+                    "Capitals.txt"))
                 .Batch(2).ToDictionary(
                     list => list.ElementAt(0).Trim(),
                     list => int.Parse(list.ElementAt(1))
@@ -31,17 +36,30 @@ namespace SingletoneImplementation
             return _capitals[name];
         }
 
-        private static readonly Lazy<SingletoneDatabase> instance = new Lazy<SingletoneDatabase>(() => new SingletoneDatabase());
+        private static readonly Lazy<SingletonDatabase> instance = new Lazy<SingletonDatabase>(() => new SingletonDatabase());
 
-        public static SingletoneDatabase Instance => instance.Value;
+        public static SingletonDatabase Instance => instance.Value;
+    }
+
+    public class SingletonRecordFinder
+    {
+        public int GetTotalPopulation(IEnumerable<string> names)
+        {
+            int result = 0;
+            foreach (var name in names)
+            {
+                result += SingletonDatabase.Instance.GetPopulation(name);
+            }
+            return result;
+        }
     }
 
     class Program
     {
         static void Main(string[] args)
         {
-            var db = SingletoneDatabase.Instance;
-            string city = "Osaka";
+            var db = SingletonDatabase.Instance;
+            const string city = "Osaka";
             WriteLine($"The population of {city} is {db.GetPopulation(city)} people");
         }
     }
