@@ -1,15 +1,17 @@
 ﻿using MoreLinq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using static System.Console;
 
 namespace VectorRasterDemo
 {
     public class Point
     {
-        public int X { get; set; }
-        public int Y { get; set; }
+        public int X { get; private set; }
+        public int Y { get; private set; }
 
         public Point(int x, int y)
         {
@@ -21,12 +23,32 @@ namespace VectorRasterDemo
         {
             return $"[{X},{Y}]";
         }
+
+        protected bool Equals(Point other)
+        {
+            return X == other.X && Y == other.Y;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            return obj.GetType() == this.GetType() && Equals((Point) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (X * 397) ^ Y;
+            }
+        }
     }
 
     public class Line
     {
-        public Point Start { get; set; }
-        public Point End { get; set; }
+        public Point Start { get; private set; }
+        public Point End { get; private set; }
 
         public Line(Point start, Point end)
         {
@@ -36,7 +58,27 @@ namespace VectorRasterDemo
 
         public override string ToString()
         {
-            return $"{Start.ToString()}-{End.ToString()}";
+            return $"{Start}-{End}";
+        }
+
+        protected bool Equals(Line other)
+        {
+            return Equals(Start, other.Start) && Equals(End, other.End);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            return obj.GetType() == this.GetType() && Equals((Line) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return ((Start != null ? Start.GetHashCode() : 0) * 397) ^ (End != null ? End.GetHashCode() : 0);
+            }
         }
     }
 
@@ -56,12 +98,21 @@ namespace VectorRasterDemo
         }
     }
 
-    public class LineToPointAdapter : Collection<Point>
+    public class LineToPointAdapter : IEnumerable<Point>
     {
         private static int _count = 0;
+        private static Dictionary<int,List<Point>> _cache = new Dictionary<int, List<Point>>();
 
         public LineToPointAdapter(Line line)
         {
+            var hash = line.GetHashCode();
+            if (_cache.ContainsKey(hash))
+            {
+                return;
+            }
+            
+            var points = new List<Point>();
+
             WriteLine($"{++_count}: Generating points to line {line}");
 
             int left = Math.Min(line.Start.X, line.End.X);
@@ -74,16 +125,28 @@ namespace VectorRasterDemo
             {
                 for (int y = top; y <= bottom; y++)
                 {
-                    Add(new Point(left, y));
+                    points.Add(new Point(left, y));
                 }
             }
             else if(dy == 0)
             {
                 for (int x = left; x <= right; x++)
                 {
-                    Add(new Point(x, top));
+                    points.Add(new Point(x, top));
                 }
             }
+
+            _cache.Add(hash, points);
+        }
+
+        public IEnumerator<Point> GetEnumerator()
+        {
+            return _cache.Values.SelectMany(x => x).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 
@@ -108,15 +171,17 @@ namespace VectorRasterDemo
 
         private static void Draw()
         {
+            LineToPointAdapter adapter = null;
             foreach (var vo in _vectorObjects)
             {
                 foreach (var line in vo)
                 {
-                    var adapter = new LineToPointAdapter(line);
-                    adapter.ForEach(DrawPoint);
-                    WriteLine();
+                    adapter = new LineToPointAdapter(line);
+                    //adapter.ForEach(DrawPoint);
+                    //WriteLine();
                 }
             }
+            adapter?.ForEach(DrawPoint);
         }
     }
 }
