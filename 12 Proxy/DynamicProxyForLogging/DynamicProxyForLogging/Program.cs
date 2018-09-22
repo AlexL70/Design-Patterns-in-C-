@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Text;
+using ImpromptuInterface;
 using static System.Console;
 
 namespace DynamicProxyForLogging
@@ -40,14 +44,75 @@ namespace DynamicProxyForLogging
         }
     }
 
+    public class Log<T> : DynamicObject
+        where T : class, new()
+    {
+        private readonly T _subject;
+        private Dictionary<string, int> _methodCallCount = new Dictionary<string, int>();
+
+        public Log(T subject) => _subject = subject ?? throw new ArgumentNullException(nameof(subject));
+
+        public static I As<I>() where I : class
+        {
+            if (!typeof(I).IsInterface)
+                throw  new ArgumentException($"{nameof(I)} must be an interface type");
+
+            return new Log<T>(new T()).ActLike<I>();
+        }
+
+        public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
+        {
+            try
+            {
+                WriteLine($"Invoking {_subject.GetType().Name}.{binder.Name} with arguments [{string.Join(',', args)}]");
+                if (_methodCallCount.ContainsKey(binder.Name))
+                {
+                    _methodCallCount[binder.Name]++;
+                }
+                else
+                {
+                    _methodCallCount[binder.Name] = 1;
+                }
+
+                result = _subject.GetType().GetMethod(binder.Name).Invoke(_subject, args);
+                return true;
+            }
+            catch (Exception e)
+            {
+                WriteLine($"Invocation failed: {e}");
+                result = null;
+                return false;
+            }
+        }
+
+        public string Info
+        {
+            get
+            {
+                var sb = new StringBuilder();
+                foreach (var kv in _methodCallCount)
+                {
+                    sb.AppendLine($"{kv.Key} method has been called {kv.Value} time(s).");
+                }
+                return sb.ToString();
+            }
+        }
+
+        public override string ToString()
+        {
+            return $"{Info}{_subject}";
+        }
+    }
+
     class Program
     {
         static void Main(string[] args)
         {
-            var ba = new BankAccount();
+            var ba = Log<BankAccount>.As<IBankAccount>();
             ba.Deposit(100);
             ba.Withdraw(50);
-            WriteLine(ba);
+            ba.Deposit(70);
+            WriteLine($"{Environment.NewLine}Log:{Environment.NewLine}{ba}");
         }
     }
 }
