@@ -1,30 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using static System.Console;
 
 namespace Command
 {
     public class BankAccount
     {
-        private int _balance;
-        private int _overdraftLimit = -500;
-
-        public int Balance => _balance;
-        public int OverdraftLimit => _overdraftLimit;
+        public int Balance { get; private set; }
+        public int OverdraftLimit { get; private set; } = -500;
 
         public void Deposit(int amount)
         {
-            _balance += amount;
-            WriteLine($"Deposited ${amount}, balance is now ${_balance}");
+            Balance += amount;
+            WriteLine($"Deposited ${amount}, balance is now ${Balance}");
         }
 
-        public void Withdraw(int amount)
+        public bool Withdraw(int amount)
         {
-            if (_balance - amount >= _overdraftLimit)
+            if (Balance - amount >= OverdraftLimit)
             {
-                _balance -= amount;
-                WriteLine($"Withdrew ${amount}, balance is now ${_balance}");
+                Balance -= amount;
+                WriteLine($"Withdrew ${amount}, balance is now ${Balance}");
+                return true;
             }
+
+            return false;
         }
 
         public override string ToString()
@@ -35,7 +36,9 @@ namespace Command
 
     public interface ICommand
     {
+        bool Executed { get; }
         void Call();
+        void Undo();
     }
 
     public class BankAccountCommand : ICommand
@@ -47,8 +50,8 @@ namespace Command
             Deposit, Withdraw
         }
 
-        private Action _action;
-        private int _amount;
+        private readonly Action _action;
+        private readonly int _amount;
 
         public BankAccountCommand(BankAccount account, Action action, int amount)
         {
@@ -57,18 +60,40 @@ namespace Command
             _amount = amount;
         }
 
+        public bool Executed { get; private set; } = false;
+
         public void Call()
         {
             switch (_action)
             {
                 case Action.Deposit:
                     _account.Deposit(_amount);
+                    Executed = true;
                     break;
                 case Action.Withdraw:
-                    _account.Withdraw(_amount);
+                    Executed = _account.Withdraw(_amount);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(_action.ToString());
+            }
+        }
+
+        public void Undo()
+        {
+            if (Executed)
+            {
+                switch (_action)
+                {
+                    case Action.Deposit:
+                        Executed = ! _account.Withdraw(_amount);
+                        break;
+                    case Action.Withdraw:
+                        _account.Deposit(_amount);
+                        Executed = false;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
         }
     }
@@ -80,13 +105,17 @@ namespace Command
             var ba = new BankAccount();
             var commands = new List<ICommand>
             {
-                new BankAccountCommand(ba, BankAccountCommand.Action.Withdraw, 100),
-                new BankAccountCommand(ba, BankAccountCommand.Action.Deposit, 500)
+                new BankAccountCommand(ba, BankAccountCommand.Action.Withdraw, 1000),
+                new BankAccountCommand(ba, BankAccountCommand.Action.Deposit, 500),
+                new BankAccountCommand(ba, BankAccountCommand.Action.Withdraw, 100)
 
             };
             WriteLine(ba);
             foreach (var command in commands)
                 command.Call();
+            WriteLine(ba);
+            foreach (var command in Enumerable.Reverse(commands))
+                command.Undo();
             WriteLine(ba);
         }
     }
