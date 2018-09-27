@@ -27,7 +27,7 @@ namespace Coding.Exercise
         public IntVar(char name, ExpressionProcessor ep)
         {
             _name = name;
-            _ep = ep ?? throw new ArgumentNullException(nameof(ep));
+            _ep = ep;
         }
 
         public int Value
@@ -106,7 +106,7 @@ namespace Coding.Exercise
         public Token(Type tokenType, string text)
         {
             TokenType = tokenType;
-            Text = text ?? throw new ArgumentNullException(nameof(text));
+            Text = text;
         }
 
         public override string ToString()
@@ -168,35 +168,35 @@ namespace Coding.Exercise
             return new Token(Token.Type.IntConst, sb.ToString());
         }
 
+        private bool IsFinalOperand(int index, Token token, IElement element, bool opDefined, IReadOnlyList<Token> tokens, ref BinaryOperation result)
+        {
+            if (result.Left == null && !opDefined)
+            {
+                result.Left = element;
+            }
+            else if (!opDefined)
+            {
+                throw new ExceptionParseError($"Incorrect token: {token}");
+            }
+            else
+            {
+                result.Right = element;
+            }
+
+            return index == tokens.Count - 1;
+        }
+
+        private void ResetResult(ref BinaryOperation result, ref bool opDefined)
+        {
+            var r0 = new BinaryOperation() { Left = result, Right = null };
+            result = r0;
+            opDefined = false;
+        }
+
         private IElement Parse(IReadOnlyList<Token> tokens)
         {
             var result = new BinaryOperation();
             var opDefined = false;
-
-            bool IsFinalOperand(int index, Token token, IElement element)
-            {
-                if (result.Left == null && !opDefined)
-                {
-                    result.Left = element;
-                }
-                else if (!opDefined)
-                {
-                    throw new ExceptionParseError($"Incorrect token: {token}");
-                }
-                else
-                {
-                    result.Right = element;
-                }
-
-                return index == tokens.Count - 1;
-            }
-
-            void ResetResult()
-            {
-                var r0 = new BinaryOperation() { Left = result, Right = null};
-                result = r0;
-                opDefined = false; 
-            }
 
             for (int i = 0; i < tokens.Count; i++)
             {
@@ -205,13 +205,13 @@ namespace Coding.Exercise
                 {
                     case Token.Type.IntConst:
                         var c = new Integer(int.Parse(token.Text));
-                        if (!IsFinalOperand(i, token, c) && opDefined)
-                            ResetResult();
+                        if (!IsFinalOperand(i, token, c, opDefined, tokens, ref result) && opDefined)
+                            ResetResult(ref result, ref opDefined);
                         break;
                     case Token.Type.IntVar:
                         var v = new IntVar(token.Text[0], this);
-                        if (!IsFinalOperand(i, token, v) && opDefined)
-                            ResetResult();
+                        if (!IsFinalOperand(i, token, v, opDefined, tokens, ref result) && opDefined)
+                            ResetResult(ref result, ref opDefined);
                         break;
                     case Token.Type.Plus:
                         opDefined = true;
