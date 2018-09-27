@@ -1,4 +1,6 @@
 ﻿using System;
+//using System.Collections;
+//using System.Collections.Generic;
 using static System.Console;
 
 namespace IteratorObject
@@ -31,9 +33,34 @@ namespace IteratorObject
             }
         }
 
-        public class InOrderTreeIterator<T>
+        public class BinaryTree<T> //: IEnumerable<Node<T>>
         {
-            private readonly Node<T> _root;
+            private readonly Lazy<InOrderTreeIterator<T>> _enumerator;
+
+            public BinaryTree(Node<T> root)
+            {
+                _enumerator = new Lazy<InOrderTreeIterator<T>>(() => new InOrderTreeIterator<T>(root));
+            }
+
+            public InOrderTreeIterator<T> GetEnumerator()
+            {
+                return _enumerator.Value;
+            }
+
+            //IEnumerator<Node<T>> IEnumerable<Node<T>>.GetEnumerator()
+            //{
+            //    return _enumerator.Value;
+            //}
+
+            //IEnumerator IEnumerable.GetEnumerator()
+            //{
+            //    return _enumerator.Value;
+            //}
+        }
+
+        public class InOrderTreeIterator<T> //: IEnumerator<Node<T>>
+        {
+            private Node<T> _root;
             public Node<T> Current { get; private set; }
             private bool _yieldedStart;
 
@@ -81,6 +108,13 @@ namespace IteratorObject
                     Current = Current.Left;
                 }
             }
+
+            //object IEnumerator.Current => Current;
+
+            //public void Dispose()
+            //{
+            //    _root = null;
+            //}
         }
 
         static void Main(string[] args)
@@ -91,29 +125,15 @@ namespace IteratorObject
             var root = new Node<int>(1,
                 new Node<int>(2, new Node<int>(4), new Node<int>(5)), 
                 new Node<int>(3, new Node<int>(6), new Node<int>(7)));
-            var it = new InOrderTreeIterator<int>(root);
-            it.Reset();
-            var first = it.Current;
-            while (it.MoveNext())
+            var bt = new BinaryTree<int>(root);
+            //WriteLine(string.Join(",", bt));
+            //  In order to be used inside foreach object does not need to implement IEnumerable<T>.
+            //  It only needs to implement GetEnumerator method, returning object having Enumerator methods and property,
+            //  i.e. bool MoveNext(), void Reset() and T Current { get; }.
+            //  "foreach" does not really require implementing interfaces explicitly.
+            foreach (var node in bt)
             {
-                var c = it.Current;
-                if (c != first)
-                {
-                    Write(",");
-                }
-                Write(c);
-            }
-            WriteLine();
-            it.Reset();
-            first = it.Current;
-            while (it.MoveNext())
-            {
-                var c = it.Current;
-                if (c != first)
-                {
-                    Write(",");
-                }
-                Write(c);
+                Write($"{node},");
             }
             WriteLine();
         }
