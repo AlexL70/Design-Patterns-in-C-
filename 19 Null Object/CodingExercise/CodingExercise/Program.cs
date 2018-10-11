@@ -37,7 +37,6 @@ namespace CodingExercise
 
     public class NullLog : ILog
     {
-        // todo
         public int RecordLimit => int.MaxValue;
         public int RecordCount { get; set; }
 
