@@ -1,20 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using static System.Console;
 
 namespace ObservablePropertiesAndSequences
 {
     public class Market
     {
-        private List<float> _prices = new List<float>();
+        public BindingList<float> Prices { get; set; } = new BindingList<float>();
 
         public void AddPrice(float price)
         {
-            _prices.Add(price);
-            PriceAdded?.Invoke(this, price);
+            Prices.Add(price);
         }
-
-        public event EventHandler<float> PriceAdded;
     }
 
     class Program
@@ -22,7 +19,31 @@ namespace ObservablePropertiesAndSequences
         static void Main(string[] args)
         {
             var market = new Market();
-            market.PriceAdded += (sender, price) => { WriteLine($"Price added {price}"); };
+            market.Prices.ListChanged += (sender, eventArgs) =>
+            {
+                switch (eventArgs.ListChangedType)
+                {
+                    case ListChangedType.ItemAdded:
+                        WriteLine($"Price added {((BindingList<float>) sender)[eventArgs.NewIndex]}");
+                        break;
+                    case ListChangedType.ItemChanged:
+                        break;
+                    case ListChangedType.ItemDeleted:
+                        break;
+                    case ListChangedType.ItemMoved:
+                        break;
+                    case ListChangedType.PropertyDescriptorAdded:
+                        break;
+                    case ListChangedType.PropertyDescriptorChanged:
+                        break;
+                    case ListChangedType.PropertyDescriptorDeleted:
+                        break;
+                    case ListChangedType.Reset:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            };
             market.AddPrice(123);
         }
     }
