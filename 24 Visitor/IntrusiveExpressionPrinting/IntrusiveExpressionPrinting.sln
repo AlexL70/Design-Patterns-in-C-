@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2046
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntrusiveExpressionPrinting", "IntrusiveExpressionPrinting\IntrusiveExpressionPrinting.csproj", "{EEC9FF3E-D1DC-49E0-99B9-1D32E8231ED8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EEC9FF3E-D1DC-49E0-99B9-1D32E8231ED8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEC9FF3E-D1DC-49E0-99B9-1D32E8231ED8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEC9FF3E-D1DC-49E0-99B9-1D32E8231ED8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEC9FF3E-D1DC-49E0-99B9-1D32E8231ED8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A63DD9F6-2E20-42BA-8363-DFC5CEC8B552}
+	EndGlobalSection
+EndGlobal
