@@ -1,16 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using static System.Console;
 
-namespace DynamicStrategy
+namespace StaticStrategy
 {
-    public enum OutputFormat
-    {
-        Markdown,
-        Html
-    }
-
     public interface IListStrategy
     {
         void Start(StringBuilder sb);
@@ -44,27 +37,14 @@ namespace DynamicStrategy
 
         public void AddListItem(StringBuilder sb, string item)
         {
-            WriteLine($" * {item}");
+            Console.WriteLine($" * {item}");
         }
     }
 
-    public class TextProcessor
+    public class TextProcessor<LS> where LS : IListStrategy, new()
     {
         private readonly StringBuilder _sb = new StringBuilder();
-        private IListStrategy _listStrategy;
-
-        public void SetOutputFormat(OutputFormat format)
-        {
-            switch (format)
-            {
-                case OutputFormat.Markdown:
-                    _listStrategy = new MarkdownListStrategy();
-                    break;
-                case OutputFormat.Html:
-                    _listStrategy = new HtmlListStrategy();
-                    break;
-            }
-        }
+        private readonly IListStrategy _listStrategy = new LS();
 
         public void AppendList(IEnumerable<string> items)
         {
@@ -75,11 +55,6 @@ namespace DynamicStrategy
             _listStrategy.End(_sb);
         }
 
-        public StringBuilder Clear()
-        {
-            return _sb.Clear();
-        }
-
         public override string ToString() => _sb.ToString();
     }
 
@@ -87,16 +62,14 @@ namespace DynamicStrategy
     {
         static void Main(string[] args)
         {
-            string[] list = new[] {"foo", "bar", "baz"};
-            var tp = new TextProcessor();
-            tp.SetOutputFormat(OutputFormat.Markdown);
-            tp.AppendList(list);
-            WriteLine(tp);
-            WriteLine();
-            tp.Clear();
-            tp.SetOutputFormat(OutputFormat.Html);
-            tp.AppendList(list);
-            WriteLine(tp);
+            string[] list = new[] { "foo", "bar", "baz" };
+            var tpm = new TextProcessor<MarkdownListStrategy>();
+            tpm.AppendList(list);
+            Console.WriteLine(tpm);
+            Console.WriteLine();
+            var tph = new TextProcessor<HtmlListStrategy>();
+            tph.AppendList(list);
+            Console.WriteLine(tph);
         }
     }
 }
