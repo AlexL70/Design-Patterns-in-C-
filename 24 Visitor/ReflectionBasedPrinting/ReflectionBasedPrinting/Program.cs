@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using static System.Console;
 
 namespace IntrusiveExpressionPrinting
 {
+    using DictType = Dictionary<Type, Action<Expression, StringBuilder>>;
+
     public abstract class Expression
     {
         //public abstract void Print(StringBuilder sb);
@@ -33,21 +36,22 @@ namespace IntrusiveExpressionPrinting
 
     public static class ExpressionPrinter
     {
-        public static void Print(this Expression e, StringBuilder sb)
+        private static DictType _actions = new DictType()
         {
-            var type = e.GetType();
-            if (type == typeof(DoubleExpression))
+            [typeof(DoubleExpression)] = (e, sb) => sb.Append(((DoubleExpression)e).Value),
+            [typeof(AdditionExpression)] = (e, sb) =>
             {
-                sb.Append(((DoubleExpression) e).Value);
-            } else if (type == typeof(AdditionExpression))
-            {
-                var ae = (AdditionExpression) e;
+                var ae = (AdditionExpression)e;
                 sb.Append("(");
                 Print(ae.Left, sb);
                 sb.Append("+");
                 Print(ae.Right, sb);
                 sb.Append(")");
             }
+        };
+        public static void Print(this Expression e, StringBuilder sb)
+        {
+            _actions[e.GetType()](e, sb);
         }
     }
 
